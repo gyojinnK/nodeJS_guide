@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+    <body>
+        <form action="http://localhost:3000/process_create" method="post">
+            <p></p><input type="text" name="title"/></p>
+            <p><textarea name='description' placeholder="input description this area!"></textarea></p>
+            <p><input type="submit"/></p>
+        </form>
+    </body>
+</html>
+<!-- 서버로부터 사용자가 데이터를 가져오기만 할 때는 get -->
+<!-- 서버의 데이터가 사용자로 하여금 생성,수정,삭제,추가 되는 경우 보안을 위해 post -->
