@@ -11,7 +11,7 @@ const path = require("path");
  * @param body 타이틀과 설명
  * @returns HTML 생성 코드
  */
-const templateHTML = (title, list, body) => {
+const templateHTML = (title, list, body, control) => {
     return `
     <!doctype html>
     <html>
@@ -22,7 +22,7 @@ const templateHTML = (title, list, body) => {
     <body>
         <h1><a href="/">WEB</a></h1>
         ${list}
-        <a href="/create">create</a>
+        ${control}
         ${body}
     </body>
     </html>
@@ -57,7 +57,12 @@ let app = http.createServer((req, res) => {
                 let list = templateList(filelist);
                 res.writeHead(200); // 웹서버가 200을 준다는 것은 성공적으로 작업을 종료했다는 뜻
                 res.end(
-                    templateHTML(title, list, `<h2>${title}</h2>${description}`)
+                    templateHTML(
+                        title,
+                        list,
+                        `<h2>${title}</h2>${description}`,
+                        `<a href="/create">create</a>`
+                    )
                 );
             });
         } else {
@@ -73,7 +78,14 @@ let app = http.createServer((req, res) => {
                             templateHTML(
                                 title,
                                 list,
-                                `<h2>${title}</h2>${description}`
+                                `<h2>${title}</h2>${description}`,
+                                `<a href="/create">create</a> 
+                                 <a href='/update?id=${title}'>update</a> 
+                                 <form action="/delete_process" method="post" onsubmit="">
+                                    <input type="hidden" name="id" value="${title}"/>
+                                    <input type="submit" value="delete"/>
+                                 </form>
+                                `
                             )
                         );
                     }
@@ -95,7 +107,8 @@ let app = http.createServer((req, res) => {
                         <p><textarea name='description' placeholder="input description this area!"></textarea></p>
                         <input type="submit"/>
                     </form>
-                    `
+                    `,
+                    ""
                 )
             );
         });
@@ -125,6 +138,81 @@ let app = http.createServer((req, res) => {
                 // writeHead(302, {Loction: specific spot}) -> Loction으로 페이지를 이동시킴
                 res.writeHead(302, {
                     Location: `/?id=${title}`,
+                });
+                res.end("success");
+            });
+        });
+    } else if (pathname === "/update") {
+        fs.readdir("./data", (err, filelist) => {
+            fs.readFile(
+                `./data/${queryData.id}`,
+                "utf-8",
+                (err, description) => {
+                    let title = queryData.id;
+                    let list = templateList(filelist);
+                    res.writeHead(200); // 웹서버가 200을 준다는 것은 성공적으로 작업을 종료했다는 뜻
+                    res.end(
+                        templateHTML(
+                            title,
+                            list,
+                            `
+                            <form action="/update_process" method="post">
+                                <input type='hidden' name='id' value='${title}'/>
+                                <p></p><input type="text" name="title" placeholder="title" value='${title}'/></p>
+                                <p><textarea name='description' placeholder="input description this area!">${description}</textarea></p>
+                                <input type="submit"/>
+                            </form>
+                            `,
+                            `<a href="/create">create</a>
+                             <a href='/update?id=${title}'>update</a> 
+                            `
+                        )
+                    );
+                }
+            );
+        });
+    } else if (pathname === "/update_process") {
+        let body = "";
+        req.on("data", (data) => {
+            body += data;
+            if (body.length > 1e6) {
+                req.connection.destroy();
+            }
+        });
+        // post로 전송된 데이터를 담은 body를 qs.parse(qs = require('querystring))로
+        // parsing하여 post변수로 데이터 처리 가능
+        req.on("end", () => {
+            let post = qs.parse(body);
+            let id = post.id;
+            let title = post.title;
+            let description = post.description;
+            fs.rename(`data/${id}`, `data/${title}`, (err) => {
+                fs.writeFile(`data/${title}`, description, "utf-8", (err) => {
+                    if (err) {
+                        console.log(err.message);
+                    }
+                    res.writeHead(302, {
+                        Location: `/?id=${title}`,
+                    });
+                    res.end("success");
+                });
+            });
+            console.log(post);
+        });
+    } else if (pathname === "/delete_process") {
+        let body = "";
+        req.on("data", (data) => {
+            body += data;
+            if (body.length > 1e6) {
+                req.connection.destroy();
+            }
+        });
+        req.on("end", () => {
+            let post = qs.parse(body);
+            let id = post.id;
+            fs.unlink(`data/${id}`, (err) => {
+                res.writeHead(302, {
+                    Location: `/`,
                 });
                 res.end("success");
             });
