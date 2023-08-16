@@ -1,0 +1,17 @@
+{
+  "name": "nodejs_guide",
+  "version": "1.0.0",
+  "description": "nodeJS 가이드 (실습 및 활용)",
+  "main": "main.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sanitize-html": "^2.11.0"
+  }
+}
